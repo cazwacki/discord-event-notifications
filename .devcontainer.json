@@ -3,6 +3,14 @@
 {
 	"name": "Go",
 	"image": "mcr.microsoft.com/devcontainers/go:1.23",
+	"features": {
+		"ghcr.io/devcontainers/features/aws-cli:1": {
+          "version": "latest"
+        }
+	},
+	"mounts": [
+		"source=${env:HOME}/.aws,target=/root/.aws,type=bind,readonly"
+	],
     "customizations": {
 		"vscode": {
 			"settings": {},

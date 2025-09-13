@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/bwmarrin/discordgo"
 	"github.com/csotherden/strftime"
 )
@@ -97,7 +98,6 @@ func buildMessageEmbed(events []Event) *discordgo.MessageEmbed {
 	}
 
 	eventFields := []*discordgo.MessageEmbedField{}
-
 	for _, event := range events {
 		field := &discordgo.MessageEmbedField{
 			Name:   fmt.Sprintf("%s (%s, %s)", event.Name, event.Date, event.StartTime),
@@ -112,7 +112,7 @@ func buildMessageEmbed(events []Event) *discordgo.MessageEmbed {
 	return embed
 }
 
-func main() {
+func postEvents() {
 	session := createSession()
 	defer session.Close()
 
@@ -134,4 +134,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("error sending message: %v", err)
 	}
+}
+
+func main() {
+	lambda.Start(postEvents)
 }
