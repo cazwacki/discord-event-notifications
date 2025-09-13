@@ -26,8 +26,13 @@ type Event struct {
 }
 
 func sameDateEST(t1, t2 time.Time) bool {
-	t1 = t1.In(time.FixedZone("EST", -5*60*60))
-	t2 = t2.In(time.FixedZone("EST", -5*60*60))
+	est, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		fmt.Printf("error loading EST location: %v", err)
+		return false
+	}
+	t1 = t1.In(est)
+	t2 = t2.In(est)
 	y1, m1, d1 := t1.Date()
 	y2, m2, d2 := t2.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
@@ -58,6 +63,12 @@ func getUpcomingCalendarEvents(session *discordgo.Session, guild string) []Event
 		return nil
 	}
 
+	est, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		fmt.Printf("error loading EST location: %v", err)
+		return nil
+	}
+
 	now := time.Now()
 	var calendarEvents []Event
 
@@ -67,21 +78,21 @@ func getUpcomingCalendarEvents(session *discordgo.Session, guild string) []Event
 	})
 
 	for _, e := range events {
-		fmt.Println(e.Name, e.ScheduledStartTime)
-		if sameDateEST(e.ScheduledStartTime, now) {
-
+		start_time := e.ScheduledStartTime.In(est)
+		fmt.Println(e.Name, start_time)
+		if sameDateEST(start_time, now) {
 			calendarEvents = append(calendarEvents, Event{
 				Name:      e.Name,
 				Desc:      e.Description,
-				StartTime: strftime.Format("%I:%M %p", e.ScheduledStartTime),
+				StartTime: strftime.Format("%I:%M %p", start_time),
 				Date:      today,
 			})
 		}
-		if sameDateEST(e.ScheduledStartTime, now.Add(24*time.Hour)) {
+		if sameDateEST(start_time, now.Add(24*time.Hour)) {
 			calendarEvents = append(calendarEvents, Event{
 				Name:      e.Name,
 				Desc:      e.Description,
-				StartTime: strftime.Format("%I:%M %p", e.ScheduledStartTime),
+				StartTime: strftime.Format("%I:%M %p", start_time),
 				Date:      tomorrow,
 			})
 		}
